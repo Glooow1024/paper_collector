@@ -2,11 +2,12 @@
 # -*- coding:utf-8 -*-
 
 import sys
+import time
 import logging
 from PyQt6.QtWidgets import (QWidget, QDialog, QGridLayout, QLabel, QLineEdit, QTextEdit, QFileDialog, QToolTip, QPushButton, QApplication)
 from PyQt6.QtGui import QFont
-from PyQt6.QtCore import (QSize, QRect, QObject, pyqtSignal)
-from ieee_conference_spider import get_article_info, search_conferenceID
+from PyQt6.QtCore import (QSize, QRect, QObject, pyqtSignal, QThread)
+from ieee_conference_spider import IEEESpider
 
 
 class LogHandler(logging.Handler):
@@ -23,11 +24,38 @@ class LogHandler(logging.Handler):
             self.handleError(record)
 
 
+class SpiderThread(QObject):
+    _spider_finish = pyqtSignal()
+
+    def __init__(self):
+        super().__init__()
+        #self.flag_running = False
+        self.ieee_spider = IEEESpider()
+
+    def __del__(self):
+        print('>>> __del__')
+
+    def run(self, conference_ID, save_filename, logger):
+        self.ieee_spider.flag_running = True
+        self.ieee_spider.get_article_info(conference_ID, save_filename, logger)
+        self._spider_finish.emit()
+        #self.flag_running = False
+
+
 class PaperCollector(QWidget):
+    _start_spider = pyqtSignal(str, str, logging.Logger)
+
     def __init__(self):
         super().__init__()
         self.initUI()
         #sys.stdout = LogStream(newText=self.onUpdateText)
+
+        self.spiderT = SpiderThread()
+        self.thread = QThread(self)
+        self.spiderT.moveToThread(self.thread)
+        self._start_spider.connect(self.spiderT.run)        # 只能通过信号槽启动线程处理函数
+        #self.spiderT._log_info.connect(self.print_log)
+        self.spiderT._spider_finish.connect(self.finish_collect_paper)
 
 
     def initUI(self):
@@ -40,7 +68,7 @@ class PaperCollector(QWidget):
         self.conferenceID_label = QLabel('IEEE conference ID: ')
         self.conferenceID_edit = QLineEdit()
         self.conferenceID_button = QPushButton('Search')
-        self.conferenceID_button.clicked.connect(search_conferenceID)
+        self.conferenceID_button.clicked.connect(IEEESpider.search_conferenceID)
         self.saveFile_label = QLabel('Save to: ')
         self.saveFile_edit = QLineEdit()
         self.saveFile_button = QPushButton('Browse')
@@ -48,10 +76,10 @@ class PaperCollector(QWidget):
         
         # button to start crawing
         self.startCrawling_button = QPushButton('Start')
-        self.startCrawling_button.setToolTip('Click and wait for collecting published paper data.')
+        self.startCrawling_button.setToolTip('Click and wait for collecting published paper data ^o^')
         self.startCrawling_button.clicked.connect(self.start_collect_paper)
         self.stopCrawling_button = QPushButton('Stop')
-        self.stopCrawling_button.setToolTip('Click to stop collecting data.')
+        self.stopCrawling_button.setToolTip('Click to stop collecting data ^_^')
         self.stopCrawling_button.clicked.connect(self.stop_collect_paper)
 
         # print log
@@ -84,16 +112,37 @@ class PaperCollector(QWidget):
         """
         self.save_file_name = QFileDialog.getSaveFileName(self, '选择保存路径', '', 'csv(*.csv)')   # (file_name, file_type)
         self.saveFile_edit.setText(self.save_file_name[0])
-        #self.show_dialog('save to file: ' + self.save_file_name[0])
 
 
     def start_collect_paper(self):
-        global logger
-        #self.show_dialog('start!')
-        get_article_info(self.conferenceID_edit.text(), self.saveFile_edit.text(), logger)
+        if self.thread.isRunning():
+            return
         
+        self.startCrawling_button.setEnabled(False)
+        self.startCrawling_button.setToolTip('I\'m trying very hard to collect papers >_<')
+        # 先启动QThread子线程
+        #self.spiderT.flag_running = True
+        self.thread.start()
+        # 发送信号，启动线程处理函数
+        # 不能直接调用，否则会导致线程处理函数和主线程是在同一个线程，同样操作不了主界面
+        global logger
+        self._start_spider.emit(self.conferenceID_edit.text(), self.saveFile_edit.text(), logger)
+
+
+    def finish_collect_paper(self):
+        self.startCrawling_button.setEnabled(True)
+        self.startCrawling_button.setToolTip('Click and wait for collecting published paper data ^o^')
+        self.spiderT.ieee_spider.flag_running = False
+        self.thread.quit()
+
 
     def stop_collect_paper(self):
+        if not self.thread.isRunning():
+            return
+        self.spiderT.ieee_spider.flag_running = False
+        time.sleep(15)
+        self.thread.quit()      # 退出
+        #self.thread.wait()      # 回收资源
         self.show_dialog('stop!')
 
 

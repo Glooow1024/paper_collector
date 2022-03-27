@@ -10,7 +10,7 @@ from matplotlib.ticker import MaxNLocator
 # 统计：根据抓取的数据统计论文keywords                    
 ###########################################################
 
-fileName = 'E:/Study/lab/文献阅读/+trending/ICRA/ICRA_2020.csv'
+fileName = 'E:\\spider\\paper_collector\\ICRA_2020.csv'
 
 # extract all keywords
 dataframe = pd.read_csv(fileName, sep=',', encoding='unicode_escape')
@@ -32,7 +32,7 @@ plt.gca().yaxis.set_major_locator(MaxNLocator(integer=True))
 plt.xticks(rotation=90)
 fig.autofmt_xdate()
 plt.title('ICRA 2020 Statistics', fontsize=16)
-plt.savefig('E:/Study/lab/文献阅读/+trending/ICRA/ICRA_2020_1.png')
+plt.savefig('E:\\spider\\paper_collector\\ICRA_2020_1.png')
 plt.show()
 
 # plot horizontal figure
@@ -41,5 +41,5 @@ plt.barh(y=kws[0:40], width=cnts[0:40], height=0.8)
 #plt.yticks(fontsize=16)
 plt.xticks(fontsize=16)
 plt.title('ICRA 2020 Statistics', fontsize=16)
-#plt.savefig('E:/Study/lab/文献阅读/+trending/ICRA/ICRA_2020_2.png')
+#plt.savefig('E:\\spider\\paper_collector\\ICRA_2020_2.png')
 plt.show()
