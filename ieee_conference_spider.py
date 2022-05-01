@@ -14,6 +14,7 @@
 import re
 import os
 import json
+import time
 import requests
 import pandas as pd
 import logging
@@ -35,7 +36,7 @@ class IEEESpider:
         from selenium.webdriver.chrome.options import Options
         global driver
         chrome_options = Options()
-        web_driver='E:\\spider\\paper_collector\\chromedriver'
+        web_driver='E:\\SAST\\spider\\paper_collector\\chromedriver'
         driver=webdriver.Chrome(executable_path=web_driver, chrome_options=chrome_options)
         browse_url = 'https://ieeexplore.ieee.org/browse/conferences/title'
         driver.get(browse_url)
@@ -69,6 +70,15 @@ class IEEESpider:
         logger.info(('║ issueNumber  : ' + issueNumber).ljust(69) + '║')
         logger.info(('║ Save to file : ' + saveFileName).ljust(69) + '║')
         logger.info('└--------------------------------------------------------------------┘')
+
+        logger.info('TEST!')
+        for i in range(100):
+            if not self.flag_running:
+                continue
+            logger.info(i)
+            time.sleep(1)
+        logger.info('BYE-BYE!')
+        return 
 
         # 记录论文数据
         dataframe = pd.DataFrame({})
@@ -141,7 +151,6 @@ class IEEESpider:
                 logger.info('Page {}, total {} papers.'.format(pageNumber, count))
                 pageNumber = pageNumber+1
                 # 停一下防禁ip
-                import time
                 time.sleep(3)
 
         # 写入csv文件

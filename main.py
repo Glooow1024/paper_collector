@@ -4,7 +4,7 @@
 import sys
 import time
 import logging
-from PyQt6.QtWidgets import (QWidget, QDialog, QGridLayout, QLabel, QLineEdit, QTextEdit, QFileDialog, QToolTip, QPushButton, QApplication)
+from PyQt6.QtWidgets import (QWidget, QDialog, QHBoxLayout, QVBoxLayout, QTabWidget, QGridLayout, QLabel, QLineEdit, QTextEdit, QFileDialog, QToolTip, QPushButton, QApplication)
 from PyQt6.QtGui import QFont
 from PyQt6.QtCore import (QSize, QRect, QObject, pyqtSignal, QThread)
 from ieee_conference_spider import IEEESpider
@@ -58,11 +58,10 @@ class PaperCollector(QWidget):
         self.spiderT._spider_finish.connect(self.finish_collect_paper)
 
 
-    def initUI(self):
+    def spiderUI(self):
         """
-        Define the UI playout.
+        Define the UI playout of spider page.
         """
-        QToolTip.setFont(QFont('Times', 10))
 
         # input the conference ID and saved file name
         self.conferenceID_label = QLabel('IEEE conference ID: ')
@@ -86,22 +85,119 @@ class PaperCollector(QWidget):
         self.process = QTextEdit(readOnly=True)
         self.process.setFont(QFont("Source Code Pro",9))
 
-        grid = QGridLayout()
-        grid.setSpacing(10)
+        self.spider_grid = QGridLayout()
+        self.spider_grid.setSpacing(10)
 
-        grid.addWidget(self.conferenceID_label, 1, 0)
-        grid.addWidget(self.conferenceID_edit, 1, 1)
-        grid.addWidget(self.conferenceID_button, 1, 2)
-        grid.addWidget(self.saveFile_label, 2, 0)
-        grid.addWidget(self.saveFile_edit, 2, 1)
-        grid.addWidget(self.saveFile_button, 2, 2)
-        grid.addWidget(self.startCrawling_button, 3, 0)
-        grid.addWidget(self.stopCrawling_button, 3, 2)
-        grid.addWidget(self.process, 4, 0, 3, 3)
+        self.spider_grid.addWidget(self.conferenceID_label, 1, 0)
+        self.spider_grid.addWidget(self.conferenceID_edit, 1, 1)
+        self.spider_grid.addWidget(self.conferenceID_button, 1, 2)
+        self.spider_grid.addWidget(self.saveFile_label, 2, 0)
+        self.spider_grid.addWidget(self.saveFile_edit, 2, 1)
+        self.spider_grid.addWidget(self.saveFile_button, 2, 2)
+        self.spider_grid.addWidget(self.startCrawling_button, 3, 0)
+        self.spider_grid.addWidget(self.stopCrawling_button, 3, 2)
+        self.spider_grid.addWidget(self.process, 4, 0, 3, 3)
 
-        self.setLayout(grid)
+        self.spider_widget = QWidget()
+        self.spider_widget.setLayout(self.spider_grid)
 
-        self.setGeometry(300, 300, 700, 300)
+    
+    def analyzerUI(self):
+        """
+        Define the UI playout of analyzer page.
+        """
+        self.btnn = QPushButton('TEST')
+
+        self.analyzer_grid = QGridLayout()
+        self.analyzer_grid.setSpacing(10)
+        self.analyzer_grid.addWidget(self.btnn, 1, 0)
+
+        self.analyzer_widget = QWidget()
+        self.analyzer_widget.setLayout(self.analyzer_grid)
+
+
+    def reservedUI(self):
+        """
+        Define the UI playout of analyzer page.
+        """
+        self.image = QTextEdit(readOnly=True)
+        self.image.setFont(QFont("Source Code Pro",9))
+
+        self.reserved_grid = QGridLayout()
+        self.reserved_grid.setSpacing(10)
+        self.reserved_grid.addWidget(self.image, 1, 0)
+
+        self.reserved_widget = QWidget()
+        self.reserved_widget.setLayout(self.reserved_grid)
+
+
+    def sidebarUI(self):
+        """
+        Define the UI playout of sidebar.
+        """
+        self.sidebar_btn_1 = QPushButton('Collector', self)
+        self.sidebar_btn_1.clicked.connect(self.sidebar_button_1)
+        self.sidebar_btn_2 = QPushButton('Analyzer', self)
+        self.sidebar_btn_2.clicked.connect(self.sidebar_button_2)
+        self.sidebar_btn_3 = QPushButton('Reserved', self)
+        self.sidebar_btn_3.clicked.connect(self.sidebar_button_3)
+
+        sidebar_layout = QVBoxLayout()
+        sidebar_layout.addWidget(self.sidebar_btn_1)
+        sidebar_layout.addWidget(self.sidebar_btn_2)
+        sidebar_layout.addWidget(self.sidebar_btn_3)
+        sidebar_layout.addStretch(5)
+        sidebar_layout.setSpacing(20)
+
+        self.sidebar_widget = QWidget()
+        self.sidebar_widget.setLayout(sidebar_layout)
+
+
+    def sidebar_button_1(self):
+        self.right_widget.setCurrentIndex(0)
+
+    def sidebar_button_2(self):
+        self.right_widget.setCurrentIndex(1)
+
+    def sidebar_button_3(self):
+        self.right_widget.setCurrentIndex(2)
+
+
+    def initUI(self):
+        """
+        Define the UI playout.
+        https://www.luochang.ink/posts/pyqt5_layout_sidebar/
+        """
+        QToolTip.setFont(QFont('Times', 10))
+
+        self.sidebarUI()
+        self.spiderUI()
+        self.analyzerUI()
+        self.reservedUI()
+
+        # 多个标签页
+        self.right_widget = QTabWidget()
+        self.right_widget.tabBar().setObjectName("mainTab")
+
+        self.right_widget.addTab(self.spider_widget, '')
+        self.right_widget.addTab(self.analyzer_widget, '')
+        self.right_widget.addTab(self.reserved_widget, '')
+
+        self.right_widget.setCurrentIndex(0)
+        self.right_widget.setStyleSheet('''QTabBar::tab{width: 0; height: 0; margin: 0; padding: 0; border: none;}''')
+
+        # overall layout
+        main_layout = QHBoxLayout()
+        main_layout.addWidget(self.sidebar_widget)
+        main_layout.addWidget(self.right_widget)
+        main_layout.setStretch(0, 40)
+        main_layout.setStretch(1, 200)
+
+        self.setLayout(main_layout)
+
+        #self.setLayout(self.sprder_grid)
+
+        self.setGeometry(300, 300, 850, 300)
         self.setWindowTitle('IEEE paper collector (by Glooow)')
         self.show()
 
@@ -143,7 +239,7 @@ class PaperCollector(QWidget):
         time.sleep(15)
         self.thread.quit()      # 退出
         #self.thread.wait()      # 回收资源
-        self.show_dialog('stop!')
+        #self.show_dialog('stop!')
 
 
     def print_log(self, s):
