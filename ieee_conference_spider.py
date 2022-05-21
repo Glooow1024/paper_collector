@@ -90,7 +90,7 @@ class IEEESpider:
         paper_ieee_kwd = []
 
         # 从第一页开始下载
-        pageNumber = 38
+        pageNumber = 1
         count = 0
         while(self.flag_running):
             # 获取会议文章目录
