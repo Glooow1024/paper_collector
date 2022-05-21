@@ -71,14 +71,14 @@ class IEEESpider:
         logger.info(('║ Save to file : ' + saveFileName).ljust(69) + '║')
         logger.info('└--------------------------------------------------------------------┘')
 
-        logger.info('TEST!')
+        """logger.info('TEST!')
         for i in range(100):
             if not self.flag_running:
                 continue
             logger.info(i)
             time.sleep(1)
         logger.info('BYE-BYE!')
-        return 
+        return """
 
         # 记录论文数据
         dataframe = pd.DataFrame({})

@@ -165,8 +165,7 @@ class PaperCollector(QWidget):
 
     def initUI(self):
         """
-        Define the UI playout.
-        https://www.luochang.ink/posts/pyqt5_layout_sidebar/
+        Define the overall UI playout.
         """
         QToolTip.setFont(QFont('Times', 10))
 
@@ -183,6 +182,7 @@ class PaperCollector(QWidget):
         self.right_widget.addTab(self.analyzer_widget, '')
         self.right_widget.addTab(self.reserved_widget, '')
 
+        # 隐藏了标签部件的标签并初始化显示页面
         self.right_widget.setCurrentIndex(0)
         self.right_widget.setStyleSheet('''QTabBar::tab{width: 0; height: 0; margin: 0; padding: 0; border: none;}''')
 
